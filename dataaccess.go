@@ -95,6 +95,16 @@ func AddUser(user argo.User) bool {
 	return true
 }
 
+func UpdateUser(user argo.User) bool {
+	_, err := queries.UpdateUser(context.Background(), dataaccess.UpdateUserParams{AccessToken: user.AccessToken, ID: int64(user.UserId), RefreshExpireDtTm: user.RefreshExpireDtTm})
+
+	if err != nil {
+		log.Printf("Failed to update user with username=%s, err=%v\n", user.Username, err)
+		return false
+	}
+	return true
+}
+
 func GetUserByApikey(apikey string) (argo.User, bool) {
 	userId, err := queries.GetUserIdByApikey(context.Background(), hashApikey(apikey))
 

@@ -16,7 +16,7 @@ RETURNING *;
 
 -- name: UpdateUser :one
 UPDATE users
-SET access_token = ?
+SET access_token = ?, refresh_expire_dt_tm = ?
 WHERE id = ?
 RETURNING *;
 

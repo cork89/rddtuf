@@ -56,9 +56,32 @@ func IsLoggedIn(next http.Handler) http.Handler {
 			next.ServeHTTP(w, r)
 			return
 		}
-		ctx := context.WithValue(r.Context(), SessionCtx, username)
-		r = r.Clone(ctx)
+		user, ok := GetUser(username)
 
+		if !ok {
+			next.ServeHTTP(w, r)
+			return
+		}
+
+		if user.RefreshExpireDtTm.Before(time.Now()) {
+			usr, ok := ArgoClient.RefreshRedditAccessToken(&user)
+
+			if !ok {
+				next.ServeHTTP(w, r)
+				return
+			}
+
+			ok = UpdateUser(*usr)
+			if ok {
+				user = *usr
+			}
+		}
+
+		if ok {
+			ctx := context.WithValue(r.Context(), SessionCtx, user)
+			r = r.Clone(ctx)
+		}
 		next.ServeHTTP(w, r)
+
 	})
 }

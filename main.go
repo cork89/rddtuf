@@ -25,11 +25,12 @@ const APIKEY_COOKIE string = "apikey_cookie"
 
 func apikeyHandler(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
-	usernameCtx := ctx.Value(SessionCtx)
+	userCtx := ctx.Value(SessionCtx)
 	var user argo.User
 	var ok bool
-	if usernameCtx != nil {
-		user, ok = GetUser(usernameCtx.(string))
+	if userCtx != nil {
+		user = userCtx.(argo.User)
+		ok = true
 	} else {
 		http.Error(w, "Not authorized", http.StatusUnauthorized)
 		return
@@ -172,7 +173,7 @@ func unfurlHandler(w http.ResponseWriter, r *http.Request) {
 
 func homeHandler(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
-	usernameCtx := ctx.Value(SessionCtx)
+	userCtx := ctx.Value(SessionCtx)
 	cookie, err := r.Cookie(APIKEY_COOKIE)
 
 	apikeyData := models.ApiKeyData{Exists: false}
@@ -184,18 +185,12 @@ func homeHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	var index templ.Component
 
-	if usernameCtx != nil {
-		username := usernameCtx.(string)
-		user, ok := GetUser(username)
+	if userCtx != nil {
+		user := userCtx.(argo.User)
 
-		if !ok {
-			index = templates.Index(nil, apikeyData)
-		} else {
-			apikeyData = ApikeyExists(user)
-			apikeyData.Apikey = apikey
-			index = templates.Index(&user, apikeyData)
-		}
-
+		apikeyData = ApikeyExists(user)
+		apikeyData.Apikey = apikey
+		index = templates.Index(&user, apikeyData)
 	} else {
 		index = templates.Index(nil, apikeyData)
 	}

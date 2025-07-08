@@ -198,18 +198,19 @@ func (q *Queries) UpdateApiKey(ctx context.Context, arg UpdateApiKeyParams) (Api
 
 const updateUser = `-- name: UpdateUser :one
 UPDATE users
-SET access_token = ?
+SET access_token = ?, refresh_expire_dt_tm = ?
 WHERE id = ?
 RETURNING id, username, refresh_token, refresh_expire_dt_tm, access_token, icon_url, subscribed, subscription_dt_tm, remaining_uploads, upload_refresh_dt_tm
 `
 
 type UpdateUserParams struct {
-	AccessToken string
-	ID          int64
+	AccessToken       string
+	RefreshExpireDtTm time.Time
+	ID                int64
 }
 
 func (q *Queries) UpdateUser(ctx context.Context, arg UpdateUserParams) (User, error) {
-	row := q.db.QueryRowContext(ctx, updateUser, arg.AccessToken, arg.ID)
+	row := q.db.QueryRowContext(ctx, updateUser, arg.AccessToken, arg.RefreshExpireDtTm, arg.ID)
 	var i User
 	err := row.Scan(
 		&i.ID,
