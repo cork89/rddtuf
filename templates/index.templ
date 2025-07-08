@@ -1,0 +1,102 @@
+package templates
+
+import (
+	models "com.github.cork89/reddituf/models"
+	argo "github.com/cork89/reddit-go"
+	"time"
+)
+
+templ Index(user *argo.User, apiKey models.ApiKeyData) {
+	<!DOCTYPE html>
+	<html>
+		<head>
+			<title>RddtUF</title>
+			<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+			<link rel="stylesheet" href="/static/base.css"/>
+			<link rel="stylesheet" href="/static/index.css"/>
+			<link rel="preconnect" href="https://fonts.googleapis.com"/>
+			<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+			<link href="https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet"/>
+			<link
+				rel="icon"
+				href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='48' height='48' viewBox='0 0 16 16'><text x='-4' y='14'>🚀</text></svg>"
+			/>
+		</head>
+		<body>
+			<header>
+				<h1>RddtUF</h1>
+				<nav>
+					if user != nil {
+						<div class="user-details"><img height="25px" width="25px" src={ user.IconUrl }/><a href="/logout/">Logout</a></div>
+					} else {
+						<a href="/login/">Login</a>
+					}
+				</nav>
+			</header>
+			<main>
+				<h2>Welcome to RddtUF!</h2>
+				<p>This site aims to help unfurl reddit mobile links, which is not currently supported by the Devvit platform.</p>
+				if user != nil {
+					<div class="api-key-section">
+						<h3>Your API Key</h3>
+						if apiKey.Exists {
+							if apiKey.Apikey != "" {
+								<p>This is your current API key. Write it down, as you can't retrieve it again without generating a new one!</p>
+								<div class="api-key-display">
+									{ apiKey.Apikey }
+								</div>
+							} else {
+								<p>You have an active API key. It was created <b>{ apiKey.CreatedDtTm.UTC().Format(time.RFC3339) }</b>.</p>
+							}
+							<form action="/apikey/" method="post">
+								<button type="submit" class="action-button">Generate New API Key</button>
+							</form>
+							<p style="font-size:0.9em; color:var(--text-secondary);">⚠️Generating a new key will invalidate the old one.</p>
+						} else {
+							<p>You don't have an API key yet. Generate one to start using the service!</p>
+							<form action="/apikey/" method="post">
+								<button type="submit" class="action-button">Generate API Key</button>
+							</form>
+						}
+					</div>
+				}
+				<h3>Devvit fetch example:</h3>
+				<p>⭐ The apikey can be kept in the <a href="https://developers.reddit.com/docs/capabilities/secrets-storage#defining-secrets" target="_blank">devvit context</a></p>
+				<p>⭐ After getting an apikey you can call into our endpoint to get the unfurled reddit link</p>
+				<p>
+					@Example()
+				</p>
+			</main>
+			<footer>
+				<span>© 2025 Heart Eyes Emoji. All rights reserved.</span>
+				<a href="https://github.com/cork89/rddtuf" target="_blank">
+					<img
+						width="24px"
+						height="24px"
+						src="/static/github-mark.svg"
+						alt="github logo"
+					/>
+				</a>
+			</footer>
+		</body>
+	</html>
+}
+
+templ Example() {
+	@templ.Raw(`
+    <div class="code-container"><code>const apikey = await context.settings.get('rddtuf-apikey')
+const res = await fetch("https://rddtuf.hearteyesemoji.dev/unfurl/?subreddit=programming&shortLink=NpJwOReNkQ", {
+    headers: {
+        Authorization: ~Bearer ${apikey}~
+    }
+})
+if (!res.ok) {
+    throw new Error("failed")
+}
+const json = await response.json()
+console.log(json)
+//{
+//  "link": "https://www.reddit.com/r/programming/comments/1ln9nho/test_names_should_be_sentences/"
+//}</code></div>
+    `)
+}
