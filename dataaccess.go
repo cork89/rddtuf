@@ -105,6 +105,16 @@ func UpdateUser(user argo.User) bool {
 	return true
 }
 
+func DeleteUser(user argo.User) bool {
+	err := queries.DeleteUser(context.Background(), int64(user.UserId))
+
+	if err != nil {
+		log.Printf("Failed to delete user with username=%s, err=%v\n", user.Username, err)
+		return false
+	}
+	return true
+}
+
 func GetUserByApikey(apikey string) (argo.User, bool) {
 	userId, err := queries.GetUserIdByApikey(context.Background(), hashApikey(apikey))
 
@@ -202,4 +212,9 @@ func ApikeyExists(user argo.User) models.ApiKeyData {
 		Exists:      true,
 		CreatedDtTm: apikeyRow.CreatedDtTm,
 	}
+}
+
+func DeleteApiKey(userId int) bool {
+	err := queries.DeleteApiKey(context.Background(), int64(userId))
+	return err == nil
 }

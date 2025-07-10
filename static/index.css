@@ -112,6 +112,20 @@ main {
     transform: translateY(0);
 }
 
+.delete-button {
+    background: linear-gradient(135deg, var(--danger-color), var(--danger-hover));
+}
+
+.cancel-button {
+    background: linear-gradient(135deg, var(--accent-color), var(--accent-hover));
+}
+
+.api-key-buttons {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
 @media (max-width: 768px) {
     .code-container {
         font-size: 0.75rem;

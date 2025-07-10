@@ -1,0 +1,55 @@
+package templates
+
+import argo "github.com/cork89/reddit-go"
+
+templ Settings(user *argo.User, settings bool) {
+	<!DOCTYPE html>
+	<html>
+		<head>
+			<title>RddtUF</title>
+			<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+			<link rel="stylesheet" href="/static/base.css"/>
+			<link rel="stylesheet" href="/static/index.css"/>
+			<link rel="preconnect" href="https://fonts.googleapis.com"/>
+			<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+			<link href="https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet"/>
+			<link
+				rel="icon"
+				href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='48' height='48' viewBox='0 0 16 16'><text x='-4' y='14'>🚀</text></svg>"
+			/>
+			<script defer data-domain="rddtuf.hearteyesemoji.dev" src="https://plausible.hearteyesemoji.dev/js/script.js"></script>
+		</head>
+		<body>
+			<header>
+				<h1>RddtUF</h1>
+				<nav>
+					if user != nil {
+						<div class="user-details"><img height="25px" width="25px" src={ user.IconUrl }/><a href="/logout/">Logout</a></div>
+					} else {
+						<a href="/login/">Login</a>
+					}
+				</nav>
+			</header>
+			<main>
+				<h2>Settings</h2>
+				<h3>Username</h3>
+				<p>{ user.Username }</p>
+				<h3>Delete account?</h3>
+				if settings {
+					<p><b>Are you sure you want to delete your rddtuf account?</b></p>
+					<div class="api-key-buttons">
+						<a href="/settings/"><button class="action-button cancel-button">No</button></a>
+						<form action="/settings/delete/" method="post">
+							<button type="submit" class="action-button delete-button">Yes</button>
+						</form>
+					</div>
+				} else {
+					<div class="api-key-buttons">
+						<a href="/settings/?action=delete-account"><button type="submit" class="action-button delete-button">Delete Account</button></a>
+					</div>
+				}
+				<p>⚠️ This will delete your rddtuf account (not your reddit account) and your api key if you have one.</p>
+			</main>
+		</body>
+	</html>
+}

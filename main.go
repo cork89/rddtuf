@@ -23,6 +23,34 @@ var ArgoClient argo.RedditClient
 
 const APIKEY_COOKIE string = "apikey_cookie"
 
+func apikeyDeleteHandler(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+	userCtx := ctx.Value(SessionCtx)
+	var user argo.User
+	var ok bool
+	if userCtx != nil {
+		user = userCtx.(argo.User)
+		ok = true
+	} else {
+		http.Error(w, "Not authorized", http.StatusUnauthorized)
+		return
+	}
+
+	if !ok {
+		http.Error(w, "No user found for api key", http.StatusNotFound)
+		return
+	}
+
+	apikeyData := ApikeyExists(user)
+	if apikeyData.Exists {
+		ok := DeleteApiKey(user.UserId)
+		if !ok {
+			log.Printf("failed to delete api key, for user=%s\n", user.Username)
+		}
+	}
+	http.Redirect(w, r, "/", http.StatusFound)
+}
+
 func apikeyHandler(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	userCtx := ctx.Value(SessionCtx)
@@ -171,10 +199,67 @@ func unfurlHandler(w http.ResponseWriter, r *http.Request) {
 	w.Write(bytes)
 }
 
+func settingsDeleteHandler(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+	userCtx := ctx.Value(SessionCtx)
+
+	var user argo.User
+	if userCtx != nil {
+		user = userCtx.(argo.User)
+	} else {
+		http.Error(w, "Not authorized", http.StatusUnauthorized)
+		return
+	}
+
+	ok := DeleteApiKey(user.UserId)
+
+	if !ok {
+		http.Error(w, "Something went wrong", http.StatusInternalServerError)
+		return
+	}
+
+	ok = DeleteUser(user)
+
+	if !ok {
+		http.Error(w, "Something went wrong", http.StatusInternalServerError)
+		return
+	}
+
+	c := &http.Cookie{Name: argo.CookieName, Value: "", Path: "/", Expires: time.Unix(0, 0), HttpOnly: true}
+	http.SetCookie(w, c)
+
+	http.Redirect(w, r, "/", http.StatusFound)
+
+}
+
+func settingsHandler(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+	userCtx := ctx.Value(SessionCtx)
+
+	queryParams := r.URL.Query()
+	action := queryParams.Get("action")
+
+	if userCtx == nil {
+		http.Redirect(w, r, "/", http.StatusFound)
+		return
+	}
+	user := userCtx.(argo.User)
+	settings := templates.Settings(&user, action == "delete-account")
+	err := settings.Render(context.Background(), w)
+
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+}
+
 func homeHandler(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	userCtx := ctx.Value(SessionCtx)
 	cookie, err := r.Cookie(APIKEY_COOKIE)
+
+	queryParams := r.URL.Query()
+	action := queryParams.Get("action")
 
 	apikeyData := models.ApiKeyData{Exists: false}
 	var apikey string
@@ -187,9 +272,9 @@ func homeHandler(w http.ResponseWriter, r *http.Request) {
 
 	if userCtx != nil {
 		user := userCtx.(argo.User)
-
 		apikeyData = ApikeyExists(user)
 		apikeyData.Apikey = apikey
+		apikeyData.ToDelete = action == "delete-api-key"
 		index = templates.Index(&user, apikeyData)
 	} else {
 		index = templates.Index(nil, apikeyData)
@@ -235,6 +320,9 @@ func main() {
 	router := http.NewServeMux()
 	router.Handle("GET /static/", http.StripPrefix("/static/", http.FileServer(http.Dir("static"))))
 
+	router.HandleFunc("POST /settings/delete/", settingsDeleteHandler)
+	router.HandleFunc("GET /settings/", settingsHandler)
+	router.HandleFunc("POST /apikey/delete/", apikeyDeleteHandler)
 	router.HandleFunc("POST /apikey/", apikeyHandler)
 	router.HandleFunc("GET /logout/", logoutHandler)
 	router.HandleFunc("POST /login/", loginPostHandler)

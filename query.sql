@@ -20,6 +20,10 @@ SET access_token = ?, refresh_expire_dt_tm = ?
 WHERE id = ?
 RETURNING *;
 
+-- name: DeleteUser :exec
+DELETE FROM users
+where id = ?;
+
 -- name: GetUserIdByApikey :one
 SELECT user_id FROM apikeys
 WHERE apikey=? LIMIT 1;

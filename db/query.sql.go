@@ -96,6 +96,16 @@ func (q *Queries) DeleteApiKey(ctx context.Context, userID int64) error {
 	return err
 }
 
+const deleteUser = `-- name: DeleteUser :exec
+DELETE FROM users
+where id = ?
+`
+
+func (q *Queries) DeleteUser(ctx context.Context, id int64) error {
+	_, err := q.db.ExecContext(ctx, deleteUser, id)
+	return err
+}
+
 const getApikeyByUserId = `-- name: GetApikeyByUserId :one
 SELECT id, user_id, apikey, created_dt_tm FROM apikeys
 WHERE user_id=? LIMIT 1

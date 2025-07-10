@@ -40,20 +40,20 @@ func Index(user *argo.User, apiKey models.ApiKeyData) templ.Component {
 			return templ_7745c5c3_Err
 		}
 		if user != nil {
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "<div class=\"user-details\"><img height=\"25px\" width=\"25px\" src=\"")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "<div class=\"user-details\"><a href=\"/settings/\"><img height=\"25px\" width=\"25px\" src=\"")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var2 string
 			templ_7745c5c3_Var2, templ_7745c5c3_Err = templ.JoinStringErrs(user.IconUrl)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/index.templ`, Line: 31, Col: 82}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/index.templ`, Line: 31, Col: 103}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var2))
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "\"><a href=\"/logout/\">Logout</a></div>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "\"></a><a href=\"/logout/\">Logout</a></div>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -110,22 +110,33 @@ func Index(user *argo.User, apiKey models.ApiKeyData) templ.Component {
 						return templ_7745c5c3_Err
 					}
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 11, " <form action=\"/apikey/\" method=\"post\"><button type=\"submit\" class=\"action-button\">Generate New API Key</button></form><p style=\"font-size:0.9em; color:var(--text-secondary);\">⚠️Generating a new key will invalidate the old one.</p>")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 11, " ")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
+				if apiKey.ToDelete {
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 12, "<p><b>Are you sure you want to delete your API key?</b></p><div class=\"api-key-buttons\"><a href=\"/\"><button class=\"action-button cancel-button\">No</button></a><form action=\"/apikey/delete/\" method=\"post\"><button type=\"submit\" class=\"action-button delete-button\">Yes</button></form></div>")
+					if templ_7745c5c3_Err != nil {
+						return templ_7745c5c3_Err
+					}
+				} else {
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 13, "<div class=\"api-key-buttons\"><form action=\"/apikey/\" method=\"post\"><button type=\"submit\" class=\"action-button\">Generate New API Key</button></form><a href=\"/?action=delete-api-key\"><button type=\"submit\" class=\"action-button delete-button\">Delete API Key</button></a></div><p style=\"font-size:0.9em; color:var(--text-secondary);\">⚠️Generating a new key will invalidate the old one.</p>")
+					if templ_7745c5c3_Err != nil {
+						return templ_7745c5c3_Err
+					}
+				}
 			} else {
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 12, "<p>You don't have an API key yet. Generate one to start using the service!</p><form action=\"/apikey/\" method=\"post\"><button type=\"submit\" class=\"action-button\">Generate API Key</button></form>")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 14, "<p>You don't have an API key yet. Generate one to start using the service!</p><form action=\"/apikey/\" method=\"post\"><button type=\"submit\" class=\"action-button\">Generate API Key</button></form>")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 13, "</div>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 15, "</div>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 14, "<h3>Devvit fetch example:</h3><p>⭐ The API key can be kept in the <a href=\"https://developers.reddit.com/docs/capabilities/secrets-storage#defining-secrets\" target=\"_blank\">devvit context</a></p><p>⭐ After getting an API key you can call into our endpoint to get the unfurled reddit link</p><p>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 16, "<h3>Devvit fetch example:</h3><p>⭐ The API key can be kept in the <a href=\"https://developers.reddit.com/docs/capabilities/secrets-storage#defining-secrets\" target=\"_blank\">devvit context</a></p><p>⭐ After getting an API key you can call into our endpoint to get the unfurled reddit link</p><p>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -133,7 +144,7 @@ func Index(user *argo.User, apiKey models.ApiKeyData) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 15, "</p></main><footer><span>© 2025 Heart Eyes Emoji. All rights reserved.</span> <a href=\"https://github.com/cork89/rddtuf\" target=\"_blank\"><img width=\"24px\" height=\"24px\" src=\"/static/github-mark.svg\" alt=\"github logo\"></a></footer></body></html>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 17, "</p></main><footer><span>© 2025 Heart Eyes Emoji. All rights reserved.</span> <a href=\"https://github.com/cork89/rddtuf\" target=\"_blank\"><img width=\"24px\" height=\"24px\" src=\"/static/github-mark.svg\" alt=\"github logo\"></a></footer></body></html>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

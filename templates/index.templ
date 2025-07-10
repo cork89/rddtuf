@@ -28,7 +28,7 @@ templ Index(user *argo.User, apiKey models.ApiKeyData) {
 				<h1>RddtUF</h1>
 				<nav>
 					if user != nil {
-						<div class="user-details"><img height="25px" width="25px" src={ user.IconUrl }/><a href="/logout/">Logout</a></div>
+						<div class="user-details"><a href="/settings/"><img height="25px" width="25px" src={ user.IconUrl }/></a><a href="/logout/">Logout</a></div>
 					} else {
 						<a href="/login/">Login</a>
 					}
@@ -49,10 +49,23 @@ templ Index(user *argo.User, apiKey models.ApiKeyData) {
 							} else {
 								<p>You have an active API key. It was created <b>{ apiKey.CreatedDtTm.UTC().Format(time.RFC3339) }</b>.</p>
 							}
-							<form action="/apikey/" method="post">
-								<button type="submit" class="action-button">Generate New API Key</button>
-							</form>
-							<p style="font-size:0.9em; color:var(--text-secondary);">⚠️Generating a new key will invalidate the old one.</p>
+							if apiKey.ToDelete {
+								<p><b>Are you sure you want to delete your API key?</b></p>
+								<div class="api-key-buttons">
+									<a href="/"><button class="action-button cancel-button">No</button></a>
+									<form action="/apikey/delete/" method="post">
+										<button type="submit" class="action-button delete-button">Yes</button>
+									</form>
+								</div>
+							} else {
+								<div class="api-key-buttons">
+									<form action="/apikey/" method="post">
+										<button type="submit" class="action-button">Generate New API Key</button>
+									</form>
+									<a href="/?action=delete-api-key"><button type="submit" class="action-button delete-button">Delete API Key</button></a>
+								</div>
+								<p style="font-size:0.9em; color:var(--text-secondary);">⚠️Generating a new key will invalidate the old one.</p>
+							}
 						} else {
 							<p>You don't have an API key yet. Generate one to start using the service!</p>
 							<form action="/apikey/" method="post">
