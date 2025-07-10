@@ -125,7 +125,7 @@ func Index(user *argo.User, apiKey models.ApiKeyData) templ.Component {
 				return templ_7745c5c3_Err
 			}
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 14, "<h3>Devvit fetch example:</h3><p>⭐ The apikey can be kept in the <a href=\"https://developers.reddit.com/docs/capabilities/secrets-storage#defining-secrets\" target=\"_blank\">devvit context</a></p><p>⭐ After getting an apikey you can call into our endpoint to get the unfurled reddit link</p><p>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 14, "<h3>Devvit fetch example:</h3><p>⭐ The API key can be kept in the <a href=\"https://developers.reddit.com/docs/capabilities/secrets-storage#defining-secrets\" target=\"_blank\">devvit context</a></p><p>⭐ After getting an API key you can call into our endpoint to get the unfurled reddit link</p><p>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
