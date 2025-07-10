@@ -175,6 +175,12 @@ main a:hover {
     transform: translateY(0);
 }
 
+header a {
+    text-decoration: none;
+    color: inherit;
+    cursor: pointer;
+}
+
 /* ===== FOOTER STYLES ===== */
 footer {
     text-align: center;

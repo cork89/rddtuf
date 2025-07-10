@@ -25,7 +25,7 @@ templ Index(user *argo.User, apiKey models.ApiKeyData) {
 		</head>
 		<body>
 			<header>
-				<h1>RddtUF</h1>
+				<a href="/"><h1>RddtUF</h1></a>
 				<nav>
 					if user != nil {
 						<div class="user-details"><a href="/settings/"><img height="25px" width="25px" src={ user.IconUrl }/></a><a href="/logout/">Logout</a></div>
