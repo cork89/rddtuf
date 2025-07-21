@@ -159,6 +159,7 @@ func loginHandler(w http.ResponseWriter, r *http.Request) {
 
 type UnfurlData struct {
 	Link string `json:"link"`
+	Msg  string `json:"msg"`
 }
 
 func unfurlHandler(w http.ResponseWriter, r *http.Request) {
@@ -180,13 +181,19 @@ func unfurlHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	unfurledLink, err := ArgoClient.UnfurlRedditLink(subreddit, shortLink, user)
+	unfurledLink := ArgoClient.UnfurlRedditLink(subreddit, shortLink, user)
 
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
+	body := UnfurlData{Link: unfurledLink.Link}
+
+	switch unfurledLink.StatusCode {
+	case 500:
+		body.Msg = "Failed to unfurl reddit link"
+	case 401:
+		body.Msg = "Not Authorized"
+	case 429:
+		body.Msg = "Too Many Requests"
 	}
-	body := UnfurlData{Link: unfurledLink}
+
 	bytes, err := json.Marshal(body)
 
 	if err != nil {
@@ -194,8 +201,14 @@ func unfurlHandler(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
-
+	if unfurledLink.StatusCode >= 400 {
+		w.WriteHeader(unfurledLink.StatusCode)
+	}
 	w.Header().Set("Content-Type", "application/json")
+	// Currently ratelimit headers not being set from reddit, will likely need to implement our own
+	// w.Header().Set("x-ratelimit-remaining", unfurledLink.RatelimitRemaining)
+	// w.Header().Set("x-ratelimit-reset", unfurledLink.RatelimitReset)
+	// w.Header().Set("x-ratelimit-used", unfurledLink.RatelimitUsed)
 	w.Write(bytes)
 }
 
