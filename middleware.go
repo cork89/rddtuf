@@ -4,7 +4,10 @@ import (
 	"context"
 	"log"
 	"net/http"
+	"strings"
 	"time"
+
+	redditgo "github.com/cork89/reddit-go"
 )
 
 type HttpContext string
@@ -52,11 +55,23 @@ func Logging(next http.Handler) http.Handler {
 func IsLoggedIn(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		username, ok := ArgoClient.GetUserCookie(r)
-		if !ok {
+
+		authorization := r.Header.Get("Authorization")
+		authParts := strings.Split(authorization, " ")
+
+		notAuthed := !(len(authParts) == 2 && authParts[0] == "Bearer" && authParts[1] != "")
+
+		if notAuthed && !ok {
 			next.ServeHTTP(w, r)
 			return
 		}
-		user, ok := GetUser(username)
+
+		var user redditgo.User
+		if !ok {
+			user, ok = GetUserByApikey(authParts[1])
+		} else {
+			user, ok = GetUser(username)
+		}
 
 		if !ok {
 			next.ServeHTTP(w, r)
