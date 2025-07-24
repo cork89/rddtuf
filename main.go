@@ -118,7 +118,6 @@ func loginHandler(w http.ResponseWriter, r *http.Request) {
 
 		accessToken, ok := ArgoClient.GetRedditAccessToken(state, code)
 
-		log.Printf("access token=%v\n", accessToken)
 		if !ok {
 			if err := login.Render(context.Background(), w); err != nil {
 				log.Printf("loginHandler accesstoken err: %v", err)
@@ -346,6 +345,7 @@ func main() {
 	stack := CreateStack(
 		Logging,
 		IsLoggedIn,
+		RateLimited,
 	)
 
 	server := http.Server{

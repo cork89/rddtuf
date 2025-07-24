@@ -19,9 +19,10 @@ CREATE TABLE IF NOT EXISTS apikeys (
   FOREIGN KEY(user_id) REFERENCES users(id)
 );
 
--- CREATE TABLE IF NOT EXISTS ratelimit (
---   id INTEGER PRIMARY KEY,
---   user_id TEXT NOT NULL,
---   calls_remaining INTEGER NOT NULL,
---   reset_dt_tm TEXT NOT NULL
--- );
+CREATE TABLE IF NOT EXISTS ratelimits (
+  id INTEGER PRIMARY KEY,
+  user_id INTEGER NOT NULL UNIQUE,
+  last_call_timestamp DATETIME NOT NULL,
+  call_count INTEGER NOT NULL,
+  FOREIGN KEY(user_id) REFERENCES users(id)
+);

@@ -49,3 +49,21 @@ RETURNING *;
 -- name: DeleteApiKey :exec
 DELETE FROM apikeys
 WHERE user_id = ?;
+
+-- name: CreateRatelimit :one
+INSERT INTO ratelimits (
+  user_id, last_call_timestamp, call_count
+) VALUES (
+  ?, ?, ?
+)
+RETURNING *;
+
+-- name: GetRatelimitByUserID :one
+SELECT * FROM ratelimits
+WHERE user_id=? LIMIT 1;
+
+-- name: UpdateRatelimit :one
+UPDATE ratelimits
+SET last_call_timestamp = ?, call_count = ?
+WHERE user_id = ?
+RETURNING *;

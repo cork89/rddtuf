@@ -218,3 +218,51 @@ func DeleteApiKey(userId int) bool {
 	err := queries.DeleteApiKey(context.Background(), int64(userId))
 	return err == nil
 }
+
+func GetOrCreateRatelimit(userId int) (dataaccess.Ratelimit, bool) {
+	ratelimit, err := queries.GetRatelimitByUserID(context.Background(), int64(userId))
+	if err != nil {
+		if err == sql.ErrNoRows {
+			// Create new ratelimit entry if not found
+			newRatelimit, createErr := queries.CreateRatelimit(context.Background(), dataaccess.CreateRatelimitParams{
+				UserID:            int64(userId),
+				LastCallTimestamp: time.Now().UTC(),
+				CallCount:         1,
+			})
+			if createErr != nil {
+				log.Printf("failed to create ratelimit for user %d: %v\n", userId, createErr)
+				return dataaccess.Ratelimit{}, false
+			}
+			return newRatelimit, true
+		}
+		log.Printf("failed to get ratelimit for user %d: %v\n", userId, err)
+		return dataaccess.Ratelimit{}, false
+	}
+	return ratelimit, true
+}
+
+func IncrementRatelimit(ratelimit dataaccess.Ratelimit) bool {
+	_, err := queries.UpdateRatelimit(context.Background(), dataaccess.UpdateRatelimitParams{
+		UserID:            ratelimit.UserID,
+		LastCallTimestamp: time.Now().UTC(),
+		CallCount:         ratelimit.CallCount + 1,
+	})
+	if err != nil {
+		log.Printf("failed to increment ratelimit for user %d: %v\n", ratelimit.UserID, err)
+		return false
+	}
+	return true
+}
+
+func ResetRatelimit(ratelimit dataaccess.Ratelimit) bool {
+	_, err := queries.UpdateRatelimit(context.Background(), dataaccess.UpdateRatelimitParams{
+		UserID:            ratelimit.UserID,
+		LastCallTimestamp: time.Now().UTC(),
+		CallCount:         1,
+	})
+	if err != nil {
+		log.Printf("failed to reset ratelimit for user %d: %v\n", ratelimit.UserID, err)
+		return false
+	}
+	return true
+}

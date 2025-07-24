@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"net/http"
 	"strings"
@@ -98,5 +99,47 @@ func IsLoggedIn(next http.Handler) http.Handler {
 		}
 		next.ServeHTTP(w, r)
 
+	})
+}
+
+func RateLimited(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		userCtx := r.Context().Value(SessionCtx)
+		if userCtx == nil {
+			next.ServeHTTP(w, r)
+			return
+		}
+
+		user := userCtx.(redditgo.User)
+		ratelimit, ok := GetOrCreateRatelimit(user.UserId)
+		if !ok {
+			http.Error(w, "Internal server error", http.StatusInternalServerError)
+			return
+		}
+
+		now := time.Now().UTC()
+		rateLimit := 10
+		if user.Subscribed {
+			rateLimit = 100
+		}
+
+		if now.Minute() != ratelimit.LastCallTimestamp.Minute() || now.Day() != ratelimit.LastCallTimestamp.Day() {
+			ResetRatelimit(ratelimit)
+			ratelimit.CallCount = 1
+		} else {
+			if int(ratelimit.CallCount) >= rateLimit {
+				http.Error(w, "Too Many Requests", http.StatusTooManyRequests)
+				return
+			}
+			IncrementRatelimit(ratelimit)
+		}
+
+		w.Header().Set("x-ratelimit-remaining", fmt.Sprintf("%d", rateLimit-int(ratelimit.CallCount)))
+		w.Header().Set("x-ratelimit-used", fmt.Sprintf("%d", ratelimit.CallCount))
+		nextMinute := now.Truncate(time.Minute).Add(time.Minute)
+		resetInSeconds := int(nextMinute.Sub(now).Seconds())
+		w.Header().Set("x-ratelimit-reset", fmt.Sprintf("%d", resetInSeconds))
+
+		next.ServeHTTP(w, r)
 	})
 }
